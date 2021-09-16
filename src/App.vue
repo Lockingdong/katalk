@@ -1,28 +1,162 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+
+    <!-- start view -->
+    <template v-if="currentPageStatus === pageStatus.init">
+      <button @click="joinRoom">join room</button>
+    </template>
+
+    <!-- waiting view -->
+    <template v-if="currentPageStatus === pageStatus.wait">
+      waiting ... 
+    </template>
+
+    <!-- chat room -->
+    <chat-room
+      v-if="currentPageStatus === pageStatus.inroom"
+      :msgs="msgs"
+      @send-msg="sendMsg"
+      @leave-room="leaveRoom"
+    />
+
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+
+import MsgVO from '@/vo/MsgVO'
+import ChatRoom from '@/components/ChatRoom'
+import uniqid from 'uniqid'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    ChatRoom
+  },
+  data() {
+    return {
+      msgs: [],
+      pageStatus: {
+        init: 'INIT',
+        wait: 'WAIT',
+        inroom: 'INROOM'
+      },
+      currentPageStatus: ''
+    }
+  },
+  sockets: {
+    connect() {
+
+      // 如果有 room id 就重新加入 room
+      const roomId = this.$localStorage.get('ri')
+      if(roomId === 'WAITING_ROOM') {
+        this.$socket.emit('USER_RECONNECT_WAITING_ROOM');
+        return;
+      }
+
+      if(roomId !== null) {
+        this.$socket.emit('USER_RECONNECT_CHAT_ROOM', 
+          roomId,
+          this.$localStorage.get('ut')
+        );
+      }
+    },
+    USER_CLEAR_ROOM() {
+      this.$localStorage.remove('ri')
+      this.$localStorage.remove('ut')
+      this.currentPageStatus = this.pageStatus.init
+      this.msgs = [];
+      this.$localStorage.set('ut', uniqid('ut-') + uniqid());
+    },
+    JOIN_CHAT_ROOM_SUCCESS(roomId) {
+      this.$localStorage.set('ri', roomId);
+      this.currentPageStatus = this.pageStatus.inroom
+    },
+    JOIN_WAITING_ROOM() {
+      this.$localStorage.set('ri', 'WAITING_ROOM');
+      this.currentPageStatus = this.pageStatus.wait
+    },
+    USER_RECONNECT_CHAT_ROOM() {
+      this.currentPageStatus = this.pageStatus.inroom
+    },
+    USER_RECONNECT_WAITING_ROOM() {
+      this.currentPageStatus = this.pageStatus.wait
+    },
+    USER_RECV_MSG([userOrder, msg]) {
+      this.insertMsgToWindow(userOrder, msg)
+    },
+    USER_SET_HIST_MSGS(historyMsgs) {
+      historyMsgs.forEach(([userOrder, content]) => {
+        this.insertMsgToWindow(userOrder, content)
+      });
+    },
+  },
+  computed: {
+    userOrder() {
+      let userToken = this.$localStorage.get('ut');
+      let roomId = this.$localStorage.get('ri');
+
+      let roomIdArr = roomId.split(':');
+
+      return userToken === roomIdArr[0] ? 1 : 2;
+
+    }
+  },
+  methods: {
+    joinRoom() {
+      this.$socket.emit('USER_CLICK_JOIN_ROOM', this.$localStorage.get('ut'));
+    },
+    leaveRoom() {
+
+      this.emitMsg(0, '對方已離開');
+      this.$socket.emit('USER_CLICK_LEAVE_ROOM', 
+        this.$localStorage.get('ri'),
+        this.$localStorage.get('ut'),
+      );
+
+      
+    },
+    sendMsg(content) {
+      this.insertMsgToWindow(this.userOrder, content);
+      this.emitMsg(this.userOrder, content);
+      
+    },
+    emitMsg(userOrder, content) {
+      this.$socket.emit('USER_SEND_MSG', 
+        this.$localStorage.get('ri'),
+        userOrder,
+        content
+      );
+    },
+    insertMsgToWindow(userOrder, content) {
+      let className;
+      if(userOrder === this.userOrder) {
+        className = 'mine'
+      } else if (userOrder === 0) {
+        className = 'admin'
+      } else if (userOrder !== this.userOrder) {
+        className = 'other'
+      } else {
+        console.log('user order not found')
+      }
+
+      let msg = new MsgVO(className, content);
+
+      this.msgs.push(msg);
+    },
+  },
+  mounted() {
+    this.currentPageStatus = this.pageStatus.init;
   }
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style lang="scss">
+html, body, ul, li {
+  padding: 0;
+  margin: 0;
 }
+ul {
+  list-style: none;
+}
+
 </style>
