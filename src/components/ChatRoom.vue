@@ -1,18 +1,31 @@
 <template>
     <div class="chat-room-wrapper">
-        <div class="msg-list-wrapper">
-            <ul class="msg-list">
-                <li v-for="(msg, idx) in msgs" :key="idx" class="msg-item" :class="msgItem(msg.className, idx)">
+        <div ref="msgList" class="msg-list-wrapper">
+            <transition-group name="list" tag="ul" class="msg-list">
+                <li v-for="(msg, idx) in msgs" :key="`msg${idx}`" class="msg-item" :class="msgItem(msg.className, idx)">
                     <div class="msg-wrapper">
                         {{ msg.content }}
                     </div>
                 </li>
-            </ul>
+                <li v-if="isOtherTyping" class="msg-item other" :key="'other_typing'">
+                    <div class="msg-wrapper">
+                        對方正在輸入...
+                    </div>
+                </li>
+            </transition-group>
         </div>
         <div class="text-form">
-            <input v-model="userMsg" type="text">
-            <button @click="sendMsg">submit</button>
-            <button @click="leaveRoom">leave</button>
+            <div class="form-wrapper">
+                <button class="form-btn leave" @click="leaveRoom">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <div class="text-wrapper">
+                    <input @keyup.enter="sendMsg" class="text-msg" v-model="userMsg" type="text">
+                </div>
+                <button class="form-btn" @click="sendMsg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -27,11 +40,24 @@ export default {
         msgs: {
             type: Array,
             required: true
+        },
+        isOtherTyping: {
+            type: Boolean,
+            required: true
+        }
+    },
+    computed: {
+        userMsgHasValue() {
+            return this.userMsg !== ''
         }
     },
     methods: {
         sendMsg() {
+            if(this.userMsg.trim() === '') {
+                return
+            }
             this.$emit('send-msg', this.userMsg);
+            this.userMsg = ''
         },
         leaveRoom() {
             this.$emit('leave-room');
@@ -41,7 +67,30 @@ export default {
                 [className]: true,
                 last: this.msgs[idx + 1] === undefined || this.msgs[idx + 1].className !== className
             }
+        },
+        msgListScrollDown() {
+            this.$nextTick(() => {
+                let container = this.$refs.msgList;
+                container.scrollTop = container.scrollHeight;
+            })
         }
+    },
+    watch: {
+        userMsgHasValue(nv, ov) {
+            this.$emit('user-is-typing', nv)
+            
+        },
+        isOtherTyping(nv, ov) {
+            if(nv) {
+                this.msgListScrollDown();
+            }
+        },
+        msgs() {
+            this.msgListScrollDown();
+        }
+    },
+    mounted() {
+        this.msgListScrollDown()
     }
 }
 </script>
@@ -60,20 +109,60 @@ export default {
     list-style-type: none;
     overflow-y: scroll;
     flex-grow: 1;
+    max-width: 576px;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .text-form {
     flex: none;
+    height: 40px;
+    font-size: 0;
+    .form-wrapper {
+        display: flex;
+        height: 100%;
+        * {
+            outline: none;
+        }
+
+        .text-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            .text-msg {
+                appearance: none;
+                width: calc(100% - 10px);
+                height: 30px;
+                box-sizing: border-box;
+                border-radius: 50px;
+                font-size: 16px;
+                padding: 2px 5px;
+            }
+        }
+
+        .form-btn.leave {
+            transform: scaleX(-1);
+        }
+        .form-btn {
+            flex: none;
+            width: 40px;
+            font-size: 20px;
+            appearance: none;
+        }
+
+    }
 }
 
 .msg-item {
     padding: 1px 5px;
     .msg-wrapper {
         display: inline-block;
+        word-break: break-all;
         padding: 5px 8px;
         border-radius: 7px;
+        max-width: 200px;
     }
-
 }
 
 .msg-item.mine {
@@ -97,4 +186,40 @@ export default {
 }
 
 
+.list-enter-active,
+.list-leave-active,
+.list-move {
+    transition: 500ms cubic-bezier(0.59, 0.12, 0.34, 0.95);
+    transition-property: opacity, transform;
+}
+    
+
+
+.list-enter {
+    opacity: 0;
+    transform: translateX(-50px) scaleY(0.5);
+}
+    
+.list-enter.mine {
+    transform: translateX(50px) scaleY(0.5);
+}
+
+
+.list-enter-to {
+    opacity: 1;
+    transform: translateX(0) scaleY(1);
+}
+    
+
+.list-leave-active {
+    position: absolute;
+}
+
+.list-leave-to {
+    transition: .1s;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center top;
+}
+    
 </style>

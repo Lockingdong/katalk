@@ -1,5 +1,6 @@
 const express = require('express')
 const uniqid = require('uniqid');
+const getGoogleTrends = require('./functions/GetGoogleTrends')
 const app = express()
 const server = require('http').Server(app)
 const io = require('socket.io')(server, {
@@ -7,13 +8,16 @@ const io = require('socket.io')(server, {
       origin: '*',
     }
 })
+const redis = require("redis");
+const client = redis.createClient();
 
 app.set('view engine', 'ejs')
 
 app.use(express.static('dist'))
 app.use(express.urlencoded({extended: true}))
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+
     res.render('index')
 })
 
@@ -24,6 +28,8 @@ server.listen(3003, () => {
 
 // 房間列表
 let roomList = {};
+
+
 
 io.on('connection', async socket => {
 
@@ -93,7 +99,7 @@ io.on('connection', async socket => {
             const userToken1 = uniqueUsers[0];
             const userToken2 = uniqueUsers[1];
 
-            const roomId = userToken1 + ':' + userToken2;
+            const roomId = userToken1 + ':' + userToken2 + ':' + Date.now();
 
             sockets.forEach(sk => {
                 if(sk.user_token === userToken1 || sk.user_token === userToken2) {
@@ -109,6 +115,16 @@ io.on('connection', async socket => {
             }
             
             await io.in(roomId).emit('JOIN_CHAT_ROOM_SUCCESS', roomId);
+
+            await io.in(roomId).emit('USER_RECV_MSG', [0, '開始聊天吧']);
+
+            // let trends = await getGoogleTrends();
+            
+            // trends.forEach(async (el) => {
+            //     await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 ${el} 吧`]);
+            // })
+
+            roomList[roomId].push([0, '開始聊天吧']);
 
         }
         
@@ -127,6 +143,9 @@ io.on('connection', async socket => {
             }
         })
 
+        await io.in(roomId).emit('USER_RECV_MSG', [0, '對方已離開']);
+        roomList[roomId].push([0, '對方已離開']);
+
     });
 
     // 用戶發送訊息
@@ -137,6 +156,10 @@ io.on('connection', async socket => {
 
         await socket.to(roomId).emit('USER_RECV_MSG', userOrder, msg);
 
+    });
+
+    socket.on('USER_IS_TYPING', async (roomId, bool) => {
+        await socket.to(roomId).emit('OTHER_IS_TYPING', bool);
     });
 
     socket.on('disconnect', async () => {
