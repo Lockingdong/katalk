@@ -16,15 +16,15 @@
         </div>
         <div class="text-form">
             <div class="form-wrapper">
-                <button class="form-btn leave" @click="leaveRoom">
+                <div class="form-btn leave" @click="leaveRoom">
                     <i class="fas fa-sign-out-alt"></i>
-                </button>
+                </div>
                 <div class="text-wrapper">
                     <input @keyup.enter="sendMsg" class="text-msg" v-model="userMsg" type="text">
                 </div>
-                <button class="form-btn" @click="sendMsg">
+                <div class="form-btn" @click="sendMsg">
                     <i class="fas fa-paper-plane"></i>
-                </button>
+                </div>
             </div>
         </div>
     </div>
@@ -149,6 +149,9 @@ export default {
             width: 40px;
             font-size: 20px;
             appearance: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
     }

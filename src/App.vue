@@ -78,7 +78,9 @@ export default {
             this.insertMsgToWindow(userOrder, msg);
         },
         USER_SET_HIST_MSGS(historyMsgs) {
-            historyMsgs.forEach(([userOrder, content]) => {
+            historyMsgs.forEach(msg => {
+                console.log(msg)
+                let [userOrder, content] = JSON.parse(msg)
                 this.insertMsgToWindow(userOrder, content);
             });
         },

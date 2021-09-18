@@ -15,7 +15,7 @@ if(userToken === null) {
   Vue.localStorage.set('ut', userToken);
 }
 
-const socketConnection = SocketIO('http://localhost:3003', {
+const socketConnection = SocketIO('http://192.168.1.103:3003', {
   query: {
     user_token: userToken 
   }

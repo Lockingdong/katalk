@@ -9,7 +9,11 @@ const io = require('socket.io')(server, {
     }
 })
 const redis = require("redis");
-const client = redis.createClient();
+const { promisifyAll } = require('bluebird');
+promisifyAll(redis);
+
+const cronJob = require('./functions/CronJob')
+cronJob();
 
 app.set('view engine', 'ejs')
 
@@ -22,13 +26,8 @@ app.get('/', async (req, res) => {
 })
 
 server.listen(3003, () => {
-    console.log('listening on http://localhost:3003')
+    console.log('listening on http://192.168.1.103:3003')
 })
-
-
-// 房間列表
-let roomList = {};
-
 
 
 io.on('connection', async socket => {
@@ -38,13 +37,22 @@ io.on('connection', async socket => {
 
     socket.on('USER_RECONNECT_CHAT_ROOM', async (roomId, userToken) => {
 
+        const client = redis.createClient();
+
+        const rs = await client.lrangeAsync(roomId, 0, -1);
+
+        console.log(rs)
+
         // todo 改成 redis
-        if(roomId in roomList) {
+        if(rs.length !== 0) {
             socket.join(roomId);
             await io.in(roomId).emit('USER_RECONNECT_CHAT_ROOM')
 
             // todo redis
-            await socket.emit('USER_SET_HIST_MSGS', roomList[roomId])
+            await socket.emit('USER_SET_HIST_MSGS', rs)
+
+            await client.quitAsync();
+
             return;
         }
 
@@ -56,6 +64,7 @@ io.on('connection', async socket => {
             }
         });
 
+        await client.quitAsync();
     })
 
     socket.on('USER_RECONNECT_WAITING_ROOM', async () => {
@@ -68,13 +77,9 @@ io.on('connection', async socket => {
     // 加入房間
     socket.on('USER_CLICK_JOIN_ROOM', async (userToken) => {
 
-        // socket.user_token = userToken;
-
         await socket.join('WAITING_ROOM');
 
         const allSockets = await io.fetchSockets();
-
-        // console.log(allSockets.length)
 
         allSockets.forEach(sk => {
             
@@ -110,21 +115,24 @@ io.on('connection', async socket => {
             });
 
             // 加入房間列表 
-            if(!(roomId in roomList)) {
-                roomList[roomId] = []
-            }
-            
             await io.in(roomId).emit('JOIN_CHAT_ROOM_SUCCESS', roomId);
 
             await io.in(roomId).emit('USER_RECV_MSG', [0, '開始聊天吧']);
 
-            // let trends = await getGoogleTrends();
-            
-            // trends.forEach(async (el) => {
-            //     await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 ${el} 吧`]);
-            // })
+            // todo
+            const client = redis.createClient();
 
-            roomList[roomId].push([0, '開始聊天吧']);
+            await client.rpushAsync(roomId, JSON.stringify([0, '開始聊天吧']));
+
+            await client.expireAsync(roomId, 60 * 60 * 2);
+
+            await client.quitAsync();
+
+            let trends = await getGoogleTrends();
+            
+            trends.forEach(async (el) => {
+                await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 ${el} 吧`]);
+            })
 
         }
         
@@ -144,7 +152,14 @@ io.on('connection', async socket => {
         })
 
         await io.in(roomId).emit('USER_RECV_MSG', [0, '對方已離開']);
-        roomList[roomId].push([0, '對方已離開']);
+
+        const client = redis.createClient();
+
+        await client.rpushAsync(roomId, JSON.stringify([0, '對方已離開']));
+
+        await client.quitAsync();
+
+        // roomList[roomId].push([0, '對方已離開']);
 
     });
 
@@ -152,9 +167,15 @@ io.on('connection', async socket => {
     socket.on('USER_SEND_MSG', async (roomId, userOrder, msg) => {
 
         // todo redis
-        roomList[roomId].push([userOrder, msg]);
+        // roomList[roomId].push([userOrder, msg]);
 
         await socket.to(roomId).emit('USER_RECV_MSG', userOrder, msg);
+
+        const client = redis.createClient();
+
+        await client.rpushAsync(roomId, JSON.stringify([userOrder, msg]))
+
+        await client.quitAsync()
 
     });
 
