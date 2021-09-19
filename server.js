@@ -26,7 +26,7 @@ app.get('/', async (req, res) => {
 })
 
 server.listen(3003, () => {
-    console.log('listening on http://192.168.1.103:3003')
+    console.log('listening on http://localhost:3003')
 })
 
 
@@ -41,7 +41,7 @@ io.on('connection', async socket => {
 
         const rs = await client.lrangeAsync(roomId, 0, -1);
 
-        console.log(rs)
+        // console.log(rs)
 
         // todo 改成 redis
         if(rs.length !== 0) {
@@ -117,12 +117,12 @@ io.on('connection', async socket => {
             // 加入房間列表 
             await io.in(roomId).emit('JOIN_CHAT_ROOM_SUCCESS', roomId);
 
-            await io.in(roomId).emit('USER_RECV_MSG', [0, '開始聊天吧']);
+            await io.in(roomId).emit('USER_RECV_MSG', [0, '已建立連線，開始聊天吧!']);
 
             // todo
             const client = redis.createClient();
 
-            await client.rpushAsync(roomId, JSON.stringify([0, '開始聊天吧']));
+            await client.rpushAsync(roomId, JSON.stringify([0, '已建立連線，開始聊天吧!']));
 
             await client.expireAsync(roomId, 60 * 60 * 2);
 
@@ -131,7 +131,7 @@ io.on('connection', async socket => {
             let trends = await getGoogleTrends();
             
             trends.forEach(async (el) => {
-                await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 ${el} 吧`]);
+                await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 <a href="https://www.google.com/search?q=${el}" target="_blank">${el}</a> 吧`]);
             })
 
         }

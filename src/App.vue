@@ -148,14 +148,18 @@ export default {
 };
 </script>
 <style lang="scss">
-html,
-body,
-ul,
-li {
+@import './scss/color.scss';
+
+html, body, ul, li {
     padding: 0;
     margin: 0;
 }
 ul {
     list-style: none;
+}
+
+body, html {
+    // background: #232526;  /* fallback for old browsers */
+    background: linear-gradient(to bottom, $k-blue, darken($k-blue, 10%)) !important; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 </style>
