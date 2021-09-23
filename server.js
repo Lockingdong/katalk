@@ -1,5 +1,4 @@
 const express = require('express')
-const uniqid = require('uniqid');
 const getGoogleTrends = require('./functions/GetGoogleTrends')
 const app = express()
 const server = require('http').Server(app)
@@ -85,7 +84,7 @@ io.on('connection', async socket => {
             
             if(sk.user_token === userToken) {
 
-                console.log(sk.user_token)
+                // console.log(sk.user_token)
 
                 sk.join('WAITING_ROOM');
             }
@@ -117,21 +116,23 @@ io.on('connection', async socket => {
             // 加入房間列表 
             await io.in(roomId).emit('JOIN_CHAT_ROOM_SUCCESS', roomId);
 
-            await io.in(roomId).emit('USER_RECV_MSG', [0, '已建立連線，開始聊天吧!']);
+            await io.in(roomId).emit('USER_RECV_MSG', [0, '已建立連線，開始聊吧!']);
 
             // todo
             const client = redis.createClient();
 
-            await client.rpushAsync(roomId, JSON.stringify([0, '已建立連線，開始聊天吧!']));
+            await client.rpushAsync(roomId, JSON.stringify([0, '已建立連線，開始聊吧!']));
 
             await client.expireAsync(roomId, 60 * 60 * 2);
 
             await client.quitAsync();
 
+            await io.in(roomId).emit('USER_RECV_MSG', [0, `今晚，我想聊點`]);
+
             let trends = await getGoogleTrends();
-            
+
             trends.forEach(async (el) => {
-                await io.in(roomId).emit('USER_RECV_MSG', [0, `來聊聊 <a href="https://www.google.com/search?q=${el}" target="_blank">${el}</a> 吧`]);
+                await io.in(roomId).emit('USER_RECV_MSG', [0, `聊點 <a href="https://www.google.com/search?q=${el}" target="_blank">${el}</a> 吧`]);
             })
 
         }

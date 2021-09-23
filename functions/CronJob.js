@@ -23,7 +23,7 @@ module.exports = function() {
             titles.push($(this).text());
         })
 
-        console.log(titles)
+        // console.log(titles)
 
         await browser.close();
 

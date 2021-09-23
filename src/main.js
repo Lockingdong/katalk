@@ -3,8 +3,8 @@ import App from './App.vue'
 import VueSocketIO from 'vue-socket.io'
 import SocketIO from 'socket.io-client'
 import VueLocalStorage from 'vue-localstorage'
-import uniqid from 'uniqid'
 import VModal from 'vue-js-modal'
+import { v4 as uuidv4 } from 'uuid';
 
 Vue.use(VueLocalStorage)
 Vue.use(VModal)
@@ -12,7 +12,7 @@ Vue.use(VModal)
 let userToken = Vue.localStorage.get('ut');
 
 if(userToken === null) {
-  userToken = uniqid('ut-') + uniqid()
+  userToken = uuidv4();
   Vue.localStorage.set('ut', userToken);
 }
 

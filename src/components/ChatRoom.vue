@@ -27,7 +27,7 @@
                     <i class="fas fa-sign-out-alt"></i>
                 </div>
                 <div class="text-wrapper">
-                    <input ref="textInput" @keyup.enter="sendMsg" class="text-msg" v-model="userMsg" type="text">
+                    <input ref="textInput" @keyup.enter="sendMsg" class="text-msg" v-model="userMsg" type="text" :disabled="userMsgFormDisabled">
                 </div>
                 <div class="form-btn" @click="sendMsg">
                     <i class="fas fa-paper-plane"></i>
@@ -46,6 +46,7 @@ export default {
     data() {
         return {
             userMsg: '',
+            userMsgFormDisabled: false,
             histMsgArr: [],
         }
     },
@@ -69,9 +70,14 @@ export default {
     },
     methods: {
         sendMsg() {
+            
             let trimedMsg = this.userMsg.trim();
             if(trimedMsg === '') {
                 return
+            }
+
+            if(this.userMsgFormDisabled) {
+                return;
             }
 
             let newMsg = this.filterMsg(trimedMsg, 200);
@@ -80,6 +86,7 @@ export default {
 
             this.$emit('send-msg', newMsg);
             this.userMsg = ''
+            this.lockUserMsgForm();
         },
         filterMsg(msg, count) {
 
@@ -128,6 +135,15 @@ export default {
         triggerInput(msg) {
             this.userMsg = msg;
             this.$refs.textInput.focus();
+        },
+        lockUserMsgForm() {
+            this.userMsgFormDisabled = true;
+            setTimeout(() => {
+                this.userMsgFormDisabled = false;
+                this.$nextTick(() => {
+                    this.$refs.textInput.focus();
+                })
+            }, 800)
         }
     },
     watch: {
@@ -153,12 +169,8 @@ export default {
 <style lang="scss">
 @import '../scss/color.scss';
 
-* {
-    // border: 1px solid;
-}
-
 .chat-room-wrapper {
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -170,7 +182,7 @@ export default {
     max-width: 576px;
     width: 100%;
     margin: 0 auto;
-    background-color: rgba(#000, 0.1);
+    background-color: rgba(#000, 0.4);
     border-radius: 10px;
     
     .msg-list {
@@ -221,6 +233,7 @@ export default {
         color: black;
         font-size: 13px;
         height: 40px;
+        padding: 0 10px;
         ul {
             width: 100%;
             height: 100%;

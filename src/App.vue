@@ -1,36 +1,60 @@
 <template>
     <div id="app">
         <!-- start view -->
-        <template v-if="currentPageStatus === pageStatus.init">
-            <button @click="joinRoom">join room</button>
-        </template>
+        <transition name="fade">
+            <navbar
+                v-if="navOpen"
+                :muted="muted"
+                @toggle-muted="toggleMuted"
+                @close-navbar="navOpen = false"
+            />
+        </transition>
+        <div @click="navOpen = !navOpen" class="ham">
+            <span class="line1"></span>
+            <span class="line2"></span>
+        </div>
+        
 
-        <!-- waiting view -->
-        <template v-if="currentPageStatus === pageStatus.wait">
-            waiting ...
-        </template>
+        <transition name="fade">
+            <landing-page 
+                v-if="currentPageStatus === pageStatus.init"
+                @join-room="joinRoom"
+            />
 
-        <!-- chat room -->
-        <chat-room 
-            v-if="currentPageStatus === pageStatus.inroom" 
-            :msgs="msgs" 
-            :is-other-typing="isOtherTyping"
-            @send-msg="sendMsg" 
-            @leave-room="leaveRoom" 
-            @user-is-typing="userIsTyping"
-        />
+            <!-- waiting view -->
+            <waiting-page v-if="currentPageStatus === pageStatus.wait" 
+            />
+
+            <!-- chat room -->
+            <chat-room 
+                v-if="currentPageStatus === pageStatus.inroom" 
+                :msgs="msgs" 
+                :is-other-typing="isOtherTyping"
+                @send-msg="sendMsg" 
+                @leave-room="leaveRoom" 
+                @user-is-typing="userIsTyping"
+            />
+        </transition>
     </div>
 </template>
 
 <script>
 import MsgVO from "@/vo/MsgVO";
 import ChatRoom from "@/components/ChatRoom";
+import LandingPage from "@/components/LandingPage";
+import WaitingPage from "@/components/WaitingPage";
+import Navbar from "@/components/Navbar"
+
 import uniqid from "uniqid";
+import alert from "@/assets/alert.mp3"
 
 export default {
     name: "App",
     components: {
         ChatRoom,
+        LandingPage,
+        WaitingPage,
+        Navbar
     },
     data() {
         return {
@@ -41,7 +65,11 @@ export default {
                 inroom: "INROOM",
             },
             currentPageStatus: "",
-            isOtherTyping: false
+            isOtherTyping: false,
+            navOpen: false,
+            muted: true,
+            notificationCount: 0,
+            docTitle: ''
         };
     },
     sockets: {
@@ -49,7 +77,8 @@ export default {
             // 如果有 room id 就重新加入 room
             const roomId = this.$localStorage.get("ri");
             if (roomId === "WAITING_ROOM") {
-                this.$socket.emit("USER_RECONNECT_WAITING_ROOM");
+                this.leaveRoom();
+                // this.$socket.emit("USER_RECONNECT_WAITING_ROOM");
                 return;
             }
 
@@ -75,11 +104,15 @@ export default {
             this.currentPageStatus = this.pageStatus.wait;
         },
         USER_RECV_MSG([userOrder, msg]) {
+            this.addNotification();
             this.insertMsgToWindow(userOrder, msg);
+            if(userOrder !== 0) {
+                this.alertSound();
+            }
         },
         USER_SET_HIST_MSGS(historyMsgs) {
             historyMsgs.forEach(msg => {
-                console.log(msg)
+                // console.log(msg)
                 let [userOrder, content] = JSON.parse(msg)
                 this.insertMsgToWindow(userOrder, content);
             });
@@ -89,6 +122,15 @@ export default {
         }
     },
     computed: {
+    },
+    watch: {
+        notificationCount(nv, ov) {
+            if(nv === 1) {
+                document.title = `(🔔) ${this.docTitle}`;
+            } else {
+                document.title = this.docTitle;
+            }
+        }
     },
     methods: {
         getUserOrder() {
@@ -139,11 +181,34 @@ export default {
             this.isOtherTyping = false;
         },
         userIsTyping(bool) {
+            this.resetNotification()
             this.$socket.emit('USER_IS_TYPING', this.$localStorage.get("ri"), bool)
+        },
+        toggleMuted() {
+            this.muted = !this.muted;
+        },
+        addNotification() {
+            this.notificationCount = 1;
+        },
+        resetNotification() {
+            this.notificationCount = 0;
+        },
+        alertSound() {
+            if(!this.muted) {
+                const sound = new Audio(alert);
+                sound.play();
+            }
         }
     },
     mounted() {
         this.currentPageStatus = this.pageStatus.init;
+        this.docTitle = document.title;
+
+        let windowsVH = window.innerHeight / 100;
+        document.querySelector('#app').style.setProperty('--vh', windowsVH + 'px');
+        window.addEventListener('resize', function() {
+            document.querySelector('#app').style.setProperty('--vh', windowsVH + 'px');
+        });
     },
 };
 </script>
@@ -160,6 +225,58 @@ ul {
 
 body, html {
     // background: #232526;  /* fallback for old browsers */
-    background: linear-gradient(to bottom, $k-blue, darken($k-blue, 10%)) !important; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    // background: linear-gradient(to bottom, $k-blue, darken($k-blue, 10%)) !important; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background-image: url(assets/bar-bg.png);
+    background-position: center center;
+    background-size: cover;
 }
+
+#app {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    position: relative;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+
+
+.ham {
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    right: 15px;
+    top: 8px;
+    text-align: right;
+    cursor: pointer;
+    z-index: 11;
+    &:hover {
+        .line2 {
+            width: 100%;
+        }
+    }
+    span {
+        width: 100%;
+        height: 2px;
+        background-color: #fff;
+        display: block;
+        border-radius: 5px;
+        transition: .3s;
+    }
+
+    .line1 {
+        margin-top: 10px;
+    }
+    .line2 {
+        margin-top: 10px;
+        width: 80%;
+    }
+}
+
+
 </style>
