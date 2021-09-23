@@ -5,7 +5,7 @@ promisifyAll(redis);
 
 async function getGoogleTrends() {
     try {
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
         let cachedTitles = []
 

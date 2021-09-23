@@ -27,7 +27,7 @@ module.exports = function() {
 
         await browser.close();
 
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
         await client.set('google_trends', JSON.stringify(titles));
 

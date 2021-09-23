@@ -36,7 +36,7 @@ io.on('connection', async socket => {
 
     socket.on('USER_RECONNECT_CHAT_ROOM', async (roomId, userToken) => {
 
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
         const rs = await client.lrangeAsync(roomId, 0, -1);
 
@@ -119,7 +119,7 @@ io.on('connection', async socket => {
             await io.in(roomId).emit('USER_RECV_MSG', [0, '已建立連線，開始聊吧!']);
 
             // todo
-            const client = redis.createClient({host: 'redis'});
+            const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
             await client.rpushAsync(roomId, JSON.stringify([0, '已建立連線，開始聊吧!']));
 
@@ -154,7 +154,7 @@ io.on('connection', async socket => {
 
         await io.in(roomId).emit('USER_RECV_MSG', [0, '對方已離開']);
 
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
         await client.rpushAsync(roomId, JSON.stringify([0, '對方已離開']));
 
@@ -172,7 +172,7 @@ io.on('connection', async socket => {
 
         await socket.to(roomId).emit('USER_RECV_MSG', userOrder, msg);
 
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: '0.0.0.0', port: '6379'});
 
         await client.rpushAsync(roomId, JSON.stringify([userOrder, msg]))
 
