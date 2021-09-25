@@ -1,11 +1,12 @@
 const redis = require("redis");
 const { promisifyAll } = require('bluebird');
 promisifyAll(redis);
+const dotenv = require('dotenv').config()
 
 
 async function getGoogleTrends() {
     try {
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
 
         let cachedTitles = []
 

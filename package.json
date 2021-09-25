@@ -15,6 +15,7 @@
     "cheerio": "^1.0.0-rc.10",
     "core-js": "^3.6.5",
     "cron": "^1.8.2",
+    "dotenv": "^10.0.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "puppeteer": "^10.2.0",
@@ -26,7 +27,9 @@
     "vue": "^2.6.11",
     "vue-js-modal": "^2.0.1",
     "vue-localstorage": "^0.6.2",
-    "vue-socket.io": "^3.0.10"
+    "vue-socket.io": "^3.0.10",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

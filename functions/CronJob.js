@@ -2,6 +2,7 @@ const CronJob = require('cron').CronJob;
 const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const redis = require("redis");
+const dotenv = require('dotenv').config()
 
 module.exports = function() {
 
@@ -27,7 +28,7 @@ module.exports = function() {
 
         await browser.close();
 
-        const client = redis.createClient({host: 'redis'});
+        const client = redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
 
         await client.set('google_trends', JSON.stringify(titles));
 

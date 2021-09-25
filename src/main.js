@@ -21,7 +21,7 @@ if(historyMsgs === null) {
   Vue.localStorage.set('hms', JSON.stringify([]));
 }
 
-const socketConnection = SocketIO('https://talkbar.fun', {
+const socketConnection = SocketIO(process.env.VUE_APP_SOCKET_URL, {
   query: {
     user_token: userToken 
   }

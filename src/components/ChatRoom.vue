@@ -27,7 +27,7 @@
                     <i class="fas fa-sign-out-alt"></i>
                 </div>
                 <div class="text-wrapper">
-                    <input ref="textInput" @keyup.enter="sendMsg" class="text-msg" v-model="userMsg" type="text" :disabled="userMsgFormDisabled">
+                    <input ref="textInput" @keydown="sendMsgHandler" class="text-msg" v-model="userMsg" type="text" :disabled="userMsgFormDisabled">
                 </div>
                 <div class="form-btn" @click="sendMsg">
                     <i class="fas fa-paper-plane"></i>
@@ -69,8 +69,13 @@ export default {
         }
     },
     methods: {
+        sendMsgHandler(e) {
+            if (e.keyCode === 13 && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMsg();
+            }
+        },
         sendMsg() {
-            
             let trimedMsg = this.userMsg.trim();
             if(trimedMsg === '') {
                 return
