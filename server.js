@@ -46,6 +46,8 @@ io.on('connection', async socket => {
 
             const rs = await client.lrangeAsync(roomId, 0, -1);
 
+            await client.quitAsync();
+
             // console.log(rs)
 
             // todo 改成 redis
@@ -55,8 +57,6 @@ io.on('connection', async socket => {
 
                 // todo redis
                 await socket.emit('USER_SET_HIST_MSGS', rs)
-
-                await client.quitAsync();
 
                 return;
             }
@@ -69,11 +69,7 @@ io.on('connection', async socket => {
                 }
             });
 
-            await client.quitAsync();
-
         } catch (error) {
-
-            await client.quitAsync();
 
             Logger.error('USER_RECONNECT_CHAT_ROOM ' + error.toString())
                 
@@ -150,11 +146,11 @@ io.on('connection', async socket => {
 
                 await client.expireAsync(roomId, 60 * 60 * 2);
 
+                let trends = await getGoogleTrends(client);
+
                 await client.quitAsync();
 
                 await io.in(roomId).emit('USER_RECV_MSG', [0, `今晚，我想聊點`]);
-
-                let trends = await getGoogleTrends();
 
                 trends.forEach(async (el) => {
                     await io.in(roomId).emit('USER_RECV_MSG', [0, `聊點 <a href="https://www.google.com/search?q=${el}" target="_blank">${el}</a> 吧`]);
@@ -163,8 +159,6 @@ io.on('connection', async socket => {
             }
 
         } catch (error) {
-
-            await client.quitAsync();
 
             Logger.error('USER_CLICK_JOIN_ROOM ' + error.toString())
         }
@@ -197,8 +191,6 @@ io.on('connection', async socket => {
             // roomList[roomId].push([0, '對方已離開']);
         } catch (error) {
 
-            await client.quitAsync();
-
             Logger.error('USER_CLICK_LEAVE_ROOM ' + error.toString())
 
         }
@@ -221,8 +213,6 @@ io.on('connection', async socket => {
             await client.quitAsync()
 
         } catch (error) {
-
-            await client.quitAsync();
 
             Logger.error('USER_SEND_MSG ' + error.toString())
                 
