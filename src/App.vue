@@ -76,12 +76,11 @@ export default {
     },
     sockets: {
         connect() {
-            this.showJoinButton = true;
-            
             // 如果有 room id 就重新加入 room
             const roomId = this.$localStorage.get("ri");
             if (roomId === "WAITING_ROOM") {
                 this.leaveRoom();
+                this.showJoinButton = true;
                 // this.$socket.emit("USER_RECONNECT_WAITING_ROOM");
                 return;
             }
@@ -183,6 +182,7 @@ export default {
             this.currentPageStatus = this.pageStatus.init;
             this.msgs = [];
             this.isOtherTyping = false;
+            this.showJoinButton = true;
         },
         userIsTyping(bool) {
             this.resetNotification()
