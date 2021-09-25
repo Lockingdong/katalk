@@ -18,6 +18,7 @@
         <transition name="fade">
             <landing-page 
                 v-if="currentPageStatus === pageStatus.init"
+                :show-join-button="showJoinButton"
                 @join-room="joinRoom"
             />
 
@@ -69,11 +70,14 @@ export default {
             navOpen: false,
             muted: true,
             notificationCount: 0,
+            showJoinButton: false,
             docTitle: ''
         };
     },
     sockets: {
         connect() {
+            this.showJoinButton = true;
+            
             // 如果有 room id 就重新加入 room
             const roomId = this.$localStorage.get("ri");
             if (roomId === "WAITING_ROOM") {

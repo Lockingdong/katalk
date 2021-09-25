@@ -5,12 +5,18 @@
         </div>
         <h1 class="title">聊BAR</h1>
         <h3 class="subtitle">來聊BAR聊吧</h3>
-        <button class="start-btn" @click="joinRoom">進入包廂</button>
+        <button v-if="showJoinButton" class="start-btn" @click="joinRoom">進入包廂</button>
     </div>
 </template>
 
 <script>
 export default {
+    props: {
+        showJoinButton: {
+            type: Boolean,
+            required: true
+        }
+    },
     methods: {
         joinRoom() {
             this.$emit('join-room')
