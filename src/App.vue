@@ -87,7 +87,10 @@ export default {
 
             if (roomId !== null) {
                 this.$socket.emit("USER_RECONNECT_CHAT_ROOM", roomId, this.$localStorage.get("ut"));
+                return;
             }
+
+            this.showJoinButton = true;
         },
         USER_CLEAR_ROOM() {
             this.resetToInit();
