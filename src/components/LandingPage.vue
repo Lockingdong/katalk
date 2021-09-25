@@ -5,7 +5,9 @@
         </div>
         <h1 class="title">聊BAR</h1>
         <h3 class="subtitle">來聊BAR聊吧</h3>
-        <button v-if="showJoinButton" class="start-btn" @click="joinRoom">進入包廂</button>
+        <transition name="fade">
+            <button v-if="showJoinButton" class="start-btn" @click="joinRoom">進入包廂</button>
+        </transition>
     </div>
 </template>
 
