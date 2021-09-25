@@ -33,13 +33,11 @@ module.exports = function() {
 
             const client = await redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
 
-            await client.set('google_trends', JSON.stringify(titles));
+            await client.setAsync('google_trends', JSON.stringify(titles));
 
-            client.quit();
+            await client.quitAsync();
 
         } catch (error) {
-
-            client.quit();
 
             Logger.error('getTrends ' + error.toString())
                 

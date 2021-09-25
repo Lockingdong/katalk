@@ -25,8 +25,6 @@ async function getGoogleTrends() {
 
         Logger.error('getGoogleTrends ' + error.toString())
 
-        await client.quitAsync();
-
         return [];
     }
 }
