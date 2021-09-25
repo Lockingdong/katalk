@@ -1,6 +1,12 @@
 <template>
     <div id="app">
         <!-- start view -->
+        <!-- <Adsense
+            data-ad-client="ca-pub-5005950761451963"
+            data-ad-slot="5777063646"
+            data-full-width-responsive="true"
+        >
+        </Adsense> -->
         <transition name="fade">
             <navbar
                 v-if="navOpen"

@@ -5,6 +5,13 @@ import SocketIO from 'socket.io-client'
 import VueLocalStorage from 'vue-localstorage'
 import VModal from 'vue-js-modal'
 import { v4 as uuidv4 } from 'uuid';
+import Ads from 'vue-google-adsense'
+
+Vue.use(require('vue-script2'))
+
+Vue.use(Ads.Adsense)
+Vue.use(Ads.InArticleAdsense)
+Vue.use(Ads.InFeedAdsense)
 
 Vue.use(VueLocalStorage)
 Vue.use(VModal)

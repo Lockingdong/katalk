@@ -9,12 +9,12 @@
                         {{ msg.content }}
                     </div>
                 </li>
-                <li v-if="isOtherTyping" class="msg-item other" :key="'other_typing'">
-                    <div class="msg-wrapper">
-                        對方正在輸入...
-                    </div>
-                </li>
             </transition-group>
+            <li v-if="isOtherTyping" class="msg-item other" :key="'other_typing'">
+                <div class="msg-wrapper">
+                    對方正在輸入...
+                </div>
+            </li>
         </div>
         <div class="text-form">
             <div class="hist-msg-list">
