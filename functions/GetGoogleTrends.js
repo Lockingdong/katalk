@@ -7,13 +7,13 @@ const Logger = require('./Logger')
 
 async function getGoogleTrends() {
     try {
-        const client = redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
+        const client = await redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
 
         let cachedTitles = []
 
         cachedTitles = JSON.parse(await client.getAsync("google_trends"))
 
-        client.quitAsync();
+        await client.quitAsync();
 
         let shuffled = cachedTitles.sort(() => 0.5 - Math.random());
 
