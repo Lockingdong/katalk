@@ -2,6 +2,7 @@ const redis = require("redis");
 const { promisifyAll } = require('bluebird');
 promisifyAll(redis);
 const dotenv = require('dotenv').config()
+const Logger = require('./Logger')
 
 
 async function getGoogleTrends() {
@@ -12,7 +13,7 @@ async function getGoogleTrends() {
 
         cachedTitles = JSON.parse(await client.getAsync("google_trends"))
 
-        client.quit();
+        client.quitAsync();
 
         let shuffled = cachedTitles.sort(() => 0.5 - Math.random());
 
@@ -21,7 +22,10 @@ async function getGoogleTrends() {
         return selected
         
     } catch (error) {
-        console.error(error);
+
+        Logger.error('getGoogleTrends ' + error.toString())
+
+        await client.quitAsync();
 
         return [];
     }

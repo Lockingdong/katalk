@@ -73,6 +73,8 @@ io.on('connection', async socket => {
 
         } catch (error) {
 
+            await client.quitAsync();
+
             Logger.error('USER_RECONNECT_CHAT_ROOM ' + error.toString())
                 
         }
@@ -161,6 +163,9 @@ io.on('connection', async socket => {
             }
 
         } catch (error) {
+
+            await client.quitAsync();
+
             Logger.error('USER_CLICK_JOIN_ROOM ' + error.toString())
         }
         
@@ -192,6 +197,8 @@ io.on('connection', async socket => {
             // roomList[roomId].push([0, '對方已離開']);
         } catch (error) {
 
+            await client.quitAsync();
+
             Logger.error('USER_CLICK_LEAVE_ROOM ' + error.toString())
 
         }
@@ -214,6 +221,8 @@ io.on('connection', async socket => {
             await client.quitAsync()
 
         } catch (error) {
+
+            await client.quitAsync();
 
             Logger.error('USER_SEND_MSG ' + error.toString())
                 
