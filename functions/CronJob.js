@@ -31,7 +31,7 @@ module.exports = function() {
 
             await browser.close();
 
-            const client = redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
+            const client = await redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
 
             await client.set('google_trends', JSON.stringify(titles));
 
