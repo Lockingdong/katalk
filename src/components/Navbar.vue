@@ -3,17 +3,18 @@
         <div class="nav-content">
             <div class="logo-wrapper">
                 <img src="@/assets/bar.png" alt="">
-                <!-- <div class="title">聊BAR</div> -->
+                <div class="title">聊BAR</div>
+                <div class="title">BETA V.1.0.0</div>
             </div>
             <ul>
-                <li>關於聊Bar</li>
-                <li>服務條款</li>
-                <li>尋人專區</li>
+                <li @click="showAbout()">關於聊BAR</li>
+                <li @click="showService()">服務條款</li>
+                <li><a href="https://talkbartalk.blogspot.com/" target="_blank">尋人專區</a></li>
                 <li class="mute">
                     通知音效
                     <input v-model="navMuted" type="checkbox" id="switch" /><label for="switch">Toggle</label>
                 </li>
-                <li><i class="fas fa-donate"></i> 贊助開發APP基金</li>
+                <li><i class="fas fa-donate"></i> 贊助APP開發基金</li>
             </ul>
             <div class="media">
                 <a href="https://www.facebook.com/talkbartalk/" target="_blank">
@@ -25,11 +26,16 @@
             </div>
 
         </div>
+        <content-form />
     </div>
 </template>
 
 <script>
+import ContentForm from './widget/ContentForm'
 export default {
+    components: {
+        ContentForm
+    },
     props: {
         muted: {
             type: Boolean,
@@ -39,7 +45,19 @@ export default {
     methods: {
         closeNavbar() {
             this.$emit('close-navbar', false)
-        }
+        },
+        showAbout() {
+            this.$modal.show('content-form', {
+                header: '關於聊BAR',
+                content: '待更新...'
+            })
+        },
+        showService() {
+            this.$modal.show('content-form', {
+                header: '服務條款',
+                content: '待更新...'
+            })
+        },
     },
     computed: {
         navMuted: {
@@ -81,6 +99,11 @@ export default {
                 padding: 6px 10px;
                 border-bottom: 1px solid rgba(#fff, 0.3);
                 text-align: center;
+                cursor: pointer;
+                a {
+                    color: #fff;
+                    text-decoration: none;
+                }
                 &:first-child {
                     border-top: 1px solid rgba(#fff, 0.3);
                 }
@@ -102,11 +125,11 @@ export default {
         }
         .title {
             text-shadow: 
-            0 0 5px $k-light-blue, 
-            0 0 10px $k-light-blue, 
-            0 0 15px $k-light-blue;
+            0 0 5px $k-light-blue;
+            // 0 0 10px $k-light-blue, 
+            // 0 0 15px $k-light-blue;
             color: #fff;
-            font-size: 16px;
+            font-size: 14px;
         }
     }
 
