@@ -1,43 +1,15 @@
 const CronJob = require('cron').CronJob;
-const puppeteer = require('puppeteer');
-const cheerio = require('cheerio');
-const redis = require("redis");
-const dotenv = require('dotenv').config()
 const Logger = require('./Logger')
+const CronJobGetGoogleTrends = require('./cronJobs/CronJobGetGoogleTrends')
 
 module.exports = function() {
 
     // 每天早上 9 點抓資料
-    const getTrends = new CronJob('0 0 9 * * *', async function() {
+    const getTrends = new CronJob('* * * * * *', async function() {
 
         try {
             
-            const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
-            const page = await browser.newPage();
-            await page.goto('https://trends.google.com.tw/trends/?geo=TW');
-            await page.waitForSelector('.list-item-title')
-
-            let body = await page.content()
-
-            let $ = await cheerio.load(body)
-
-            let titles = [];
-
-            await $('.list-item-title').each(function(idx, el) {
-                titles.push($(this).text());
-            })
-
-            // console.log(titles)
-
-            await browser.close();
-
-            const client = await redis.createClient({host: dotenv.parsed.APP_REDIS_HOST});
-
-            await client.setAsync('google_trends', JSON.stringify(titles), 'EX', 60 * 60 * 48);
-
-            await client.quitAsync();
-
-            Logger.info('getTrends success')
+            await CronJobGetGoogleTrends();
 
         } catch (error) {
 
