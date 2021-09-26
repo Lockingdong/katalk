@@ -28,8 +28,8 @@ app.get('/', async (req, res) => {
     res.render('index')
 })
 
-server.listen(3003, () => {
-    console.log('listening on 3003')
+server.listen(dotenv.parsed.APP_PORT, () => {
+    console.log('listening on ' + dotenv.parsed.APP_PORT)
 })
 
 
