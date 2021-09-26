@@ -5,7 +5,7 @@ const CronJobGetGoogleTrends = require('./cronJobs/CronJobGetGoogleTrends')
 module.exports = function() {
 
     // 每天早上 9 點抓資料
-    const getTrends = new CronJob('* * * * * *', async function() {
+    const getTrends = new CronJob('0 0 9 * * *', async function() {
 
         try {
             
