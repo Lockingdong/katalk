@@ -1,5 +1,6 @@
 const express = require('express')
 const getGoogleTrends = require('./functions/GetGoogleTrends')
+const cronJobGetGoogleTrends = require('./functions/cronJobs/CronJobGetGoogleTrends.js')
 const app = express()
 const server = require('http').Server(app)
 const dotenv = require('dotenv').config()
@@ -18,6 +19,12 @@ cronJob();
 
 const Logger = require('./functions/Logger')
 
+/**
+ * global var
+ */
+
+global.GOOGLE_TRENDS = []
+
 app.set('view engine', 'ejs')
 
 app.use(express.static('dist'))
@@ -28,7 +35,8 @@ app.get('/', async (req, res) => {
     res.render('index')
 })
 
-server.listen(dotenv.parsed.APP_PORT, () => {
+server.listen(dotenv.parsed.APP_PORT, async () => {
+    await cronJobGetGoogleTrends();
     console.log('listening on ' + dotenv.parsed.APP_PORT)
 })
 
@@ -146,7 +154,7 @@ io.on('connection', async socket => {
 
                 await client.expireAsync(roomId, 60 * 60 * 2);
 
-                let trends = await getGoogleTrends(client);
+                let trends = await getGoogleTrends();
 
                 await client.quitAsync();
 

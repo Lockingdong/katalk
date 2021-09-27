@@ -1,13 +1,10 @@
 const Logger = require('./Logger')
 
 
-async function getGoogleTrends(redisClient) {
+async function getGoogleTrends() {
     try {
-        let cachedTitlesStr = await redisClient.getAsync("google_trends")
 
-        let cachedTitles = []
-
-        cachedTitles = JSON.parse(cachedTitlesStr)
+        let cachedTitles = GOOGLE_TRENDS;
 
         let shuffled = cachedTitles.sort(() => 0.5 - Math.random());
 

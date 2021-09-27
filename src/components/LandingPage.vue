@@ -13,6 +13,11 @@
 
 <script>
 export default {
+    data() {
+        return {
+            buttonDisabled: false
+        }
+    },
     props: {
         showJoinButton: {
             type: Boolean,
@@ -21,6 +26,11 @@ export default {
     },
     methods: {
         joinRoom() {
+            if(this.buttonDisabled) {
+                return
+            }
+
+            this.buttonDisabled = true
             this.$emit('join-room')
         }
     }
